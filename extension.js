@@ -75,16 +75,16 @@ function activate(context) {
 class MUISXFoldingProvider {
 	constructor() {
 		this.enabled = true;
-		// Decoration to show the folded content
+		// Decoration for the folded line (sx={{ ... }})
 		this.foldedDecoration = vscode.window.createTextEditorDecorationType({
-			rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
 			after: {
-				contentText: '{{...}}',
+				contentText: ' { ... }',
 				color: new vscode.ThemeColor('editorGhostText.foreground'),
-				margin: '0 0 0 0'
+				fontStyle: 'italic',
+				margin: '0 0 0 0.5em'
 			}
 		});
-		// Decoration to hide the original content
+		// Decoration to hide the content
 		this.hiddenDecoration = vscode.window.createTextEditorDecorationType({
 			textDecoration: 'none; display: none;'
 		});
@@ -113,51 +113,35 @@ class MUISXFoldingProvider {
 		const document = editor.document;
 		const ranges = this.findSXRanges(document);
 		
-		const foldedRanges = [];
-		const hiddenRanges = [];
-
+		// Fold each range using VSCode's folding commands
 		for (const range of ranges) {
+			// Only fold if the sx prop is multiline
 			if (range.end > range.start) {
-				const startLine = document.lineAt(range.start);
-				const sxMatch = startLine.text.match(/(\bsx\s*=\s*){/);
-				
+				// Find the position of 'sx=' in the line
+				const line = document.lineAt(range.start);
+				const sxMatch = line.text.match(/\bsx\s*=/);
 				if (sxMatch) {
-					const sxStart = startLine.text.indexOf(sxMatch[0]);
-					const braceStart = sxStart + sxMatch[1].length;
-
-					// Fold only the content inside the sx prop
-					foldedRanges.push({
-						range: new vscode.Range(
-							range.start,
-							braceStart,
-							range.start,
-							startLine.text.length
-						)
-					});
-
-					// Hide the lines between (not including the first and last braces)
-					if (range.end > range.start) {
-						hiddenRanges.push({
-							range: new vscode.Range(
-								range.start,
-								startLine.text.length,
-								range.end,
-								0
-							)
-						});
-					}
+					const sxStart = sxMatch.index;
+					// Create a selection that starts after 'sx=' and ends at the closing brace
+					const foldingRange = new vscode.Selection(
+						range.start,
+						sxStart + sxMatch[0].length,
+						range.end,
+						document.lineAt(range.end).text.length
+					);
+					editor.selection = foldingRange;
+					await vscode.commands.executeCommand('editor.fold');
 				}
 			}
 		}
-
-		editor.setDecorations(this.foldedDecoration, foldedRanges);
-		editor.setDecorations(this.hiddenDecoration, hiddenRanges);
+		
+		// Clear selection
+		editor.selection = new vscode.Selection(0, 0, 0, 0);
 	}
 
 	async unfoldRanges(editor) {
 		if (!editor) return;
-		editor.setDecorations(this.foldedDecoration, []);
-		editor.setDecorations(this.hiddenDecoration, []);
+		await vscode.commands.executeCommand('editor.unfoldAll');
 	}
 
 	findSXRanges(document) {
@@ -171,31 +155,31 @@ class MUISXFoldingProvider {
 				let openBraces = 0;
 				let startLine = i;
 				let endLine = i;
+				let foundFirstBrace = false;
 
-				// Count braces in the current line
-				for (const char of text) {
-					if (char === '{') openBraces++;
-					if (char === '}') openBraces--;
-				}
-
-				// If we have unclosed braces, look for the closing ones
-				if (openBraces > 0) {
-					for (let j = i + 1; j < document.lineCount; j++) {
-						const currentLine = document.lineAt(j).text;
-						
-						for (const char of currentLine) {
-							if (char === '{') openBraces++;
-							if (char === '}') {
-								openBraces--;
-								if (openBraces === 0) {
-									endLine = j;
-									break;
-								}
+				// Find the line with the opening brace
+				for (let j = i; j < document.lineCount; j++) {
+					const currentLine = document.lineAt(j).text;
+					
+					for (let k = 0; k < currentLine.length; k++) {
+						const char = currentLine[k];
+						if (char === '{') {
+							openBraces++;
+							if (!foundFirstBrace) {
+								startLine = j;
+								foundFirstBrace = true;
 							}
 						}
-						
-						if (endLine !== i) break;
+						if (char === '}') {
+							openBraces--;
+							if (openBraces === 0) {
+								endLine = j;
+								break;
+							}
+						}
 					}
+					
+					if (endLine !== i) break;
 				}
 
 				// Only add multiline sx props
