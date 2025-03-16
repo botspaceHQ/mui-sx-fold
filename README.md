@@ -29,7 +29,7 @@ Before folding:
 
 After folding:
 ```jsx
-<Button sx={ ... }>
+<Button sx={{ ...
   Click Me
 </Button>
 ```
