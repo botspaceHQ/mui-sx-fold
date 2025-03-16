@@ -108,6 +108,10 @@ class MUISXFoldingProvider {
 		if (!editor) return;
 		
 		const document = editor.document;
+		
+		// First unfold everything to ensure we start from a clean state
+		await vscode.commands.executeCommand('editor.unfoldAll');
+		
 		const ranges = this.findSXRanges(document);
 		
 		// Store current cursor position
