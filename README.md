@@ -6,7 +6,7 @@ A Visual Studio Code extension that enhances code readability by automatically f
 
 - **Automatic Folding**: Automatically folds multiline `sx` props in your JavaScript/TypeScript React files
 - **Toggle Support**: Easily toggle the folding feature on/off with a command
-- **Visual Indicators**: Shows a subtle `{ ... }` indicator for folded props
+- **Visual Indicators**: Shows a subtle `{{...` indicator for folded props
 - **Language Support**: Works with JavaScript, TypeScript, and their React variants (`.js`, `.jsx`, `.ts`, `.tsx`)
 
 Example of how it works:
@@ -29,7 +29,7 @@ Before folding:
 
 After folding:
 ```jsx
-<Button sx={{ ...
+<Button sx={{...
   Click Me
 </Button>
 ```
