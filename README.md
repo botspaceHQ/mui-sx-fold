@@ -1,65 +1,77 @@
-# mui-sx-fold README
+# MUI SX Fold
 
-This is the README for your extension "mui-sx-fold". After writing up a brief description, we recommend including the following sections.
+A Visual Studio Code extension that enhances code readability by automatically folding MUI's `sx` props in your React components.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Automatic Folding**: Automatically folds multiline `sx` props in your JavaScript/TypeScript React files
+- **Toggle Support**: Easily toggle the folding feature on/off with a command
+- **Visual Indicators**: Shows a subtle `{ ... }` indicator for folded props
+- **Language Support**: Works with JavaScript, TypeScript, and their React variants (`.js`, `.jsx`, `.ts`, `.tsx`)
 
-For example if there is an image subfolder under your extension project workspace:
+Example of how it works:
 
-\!\[feature X\]\(images/feature-x.png\)
+Before folding:
+```jsx
+<Button
+  sx={{
+    backgroundColor: 'primary.main',
+    color: 'white',
+    padding: 2,
+    '&:hover': {
+      backgroundColor: 'primary.dark'
+    }
+  }}
+>
+  Click Me
+</Button>
+```
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+After folding:
+```jsx
+<Button sx={ ... }>
+  Click Me
+</Button>
+```
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Visual Studio Code version 1.98.0 or higher
+- React codebase using Material-UI (MUI) components
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `mui-sx-fold.enabled`: Enable/disable automatic folding of MUI sx props (default: `true`)
+
+## Commands
+
+The extension provides the following commands:
+
+* `Toggle MUI SX Fold`: Toggle the folding feature on/off
+
+You can access these commands through the Command Palette (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows/Linux).
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+None reported yet. If you find any issues, please report them on our [GitHub repository](https://github.com/botspacehq/mui-sx-fold/issues).
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+- Initial release
+- Basic folding functionality for MUI sx props
+- Toggle command
+- Support for JS/TS React files
 
 ---
 
-## Working with Markdown
+## Contributing
 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+Found a bug or have a feature request? Please open an issue on our [GitHub repository](https://github.com/botspacehq/mui-sx-fold).
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
+## License
 
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+This extension is licensed under the MIT License.

@@ -3,6 +3,11 @@
   "displayName": "MUI SX Fold",
   "description": "Fold MUI sx props for better code readability",
   "version": "0.0.1",
+  "publisher": "BotSpace",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/botspacehq/mui-sx-fold"
+  },
   "engines": {
     "vscode": "^1.98.0"
   },
