@@ -9,7 +9,6 @@ const vscode = require('vscode');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('MUI SX Fold is now active!');
@@ -41,24 +40,22 @@ function activate(context) {
 		}
 	});
 
-	// Handle active editor changes
+	// Handle active editor changes - only fold when a new file is opened
 	const changeActiveEditor = vscode.window.onDidChangeActiveTextEditor(async editor => {
 		if (editor && foldingProvider.enabled) {
-			await foldingProvider.foldRanges(editor);
-		}
-	});
-
-	// Handle document changes
-	const changeDocument = vscode.workspace.onDidChangeTextDocument(async event => {
-		const editor = vscode.window.activeTextEditor;
-		if (editor && event.document === editor.document && foldingProvider.enabled) {
-			await foldingProvider.foldRanges(editor);
+			// Check if this is a supported file type
+			if (supportedLanguages.includes(editor.document.languageId)) {
+				await foldingProvider.foldRanges(editor);
+			}
 		}
 	});
 
 	// Automatically fold in the active editor when extension activates
 	if (vscode.window.activeTextEditor && foldingProvider.enabled) {
-		foldingProvider.foldRanges(vscode.window.activeTextEditor);
+		const editor = vscode.window.activeTextEditor;
+		if (supportedLanguages.includes(editor.document.languageId)) {
+			foldingProvider.foldRanges(editor);
+		}
 	}
 
 	context.subscriptions.push(
@@ -66,7 +63,6 @@ function activate(context) {
 		disposableFolding,
 		toggleCommand,
 		changeActiveEditor,
-		changeDocument,
 		foldingProvider.foldedDecoration,
 		foldingProvider.hiddenDecoration
 	);
@@ -75,6 +71,7 @@ function activate(context) {
 class MUISXFoldingProvider {
 	constructor() {
 		this.enabled = true;
+		this.debounceTimeout = null;
 		// Decoration for the folded line (sx={{ ... }})
 		this.foldedDecoration = vscode.window.createTextEditorDecorationType({
 			after: {
@@ -113,16 +110,26 @@ class MUISXFoldingProvider {
 		const document = editor.document;
 		const ranges = this.findSXRanges(document);
 		
+		// Store current cursor position
+		const currentPosition = editor.selection.active;
+		
 		// Fold each range using VSCode's folding commands
 		for (const range of ranges) {
 			// Only fold if the sx prop is multiline
 			if (range.end > range.start) {
-				// Find the position of 'sx=' in the line
 				const line = document.lineAt(range.start);
 				const sxMatch = line.text.match(/\bsx\s*=/);
 				if (sxMatch) {
+					// Check if the sx prop content is actually multiline
+					const startLine = document.lineAt(range.start).text;
+					const endLine = document.lineAt(range.end).text;
+					
+					// Skip if the opening and closing braces are on the same line
+					if (startLine.includes('{') && startLine.includes('}')) {
+						continue;
+					}
+					
 					const sxStart = sxMatch.index;
-					// Create a selection that starts after 'sx=' and ends at the closing brace
 					const foldingRange = new vscode.Selection(
 						range.start,
 						sxStart + sxMatch[0].length,
@@ -135,8 +142,8 @@ class MUISXFoldingProvider {
 			}
 		}
 		
-		// Clear selection
-		editor.selection = new vscode.Selection(0, 0, 0, 0);
+		// Restore cursor position
+		editor.selection = new vscode.Selection(currentPosition, currentPosition);
 	}
 
 	async unfoldRanges(editor) {
@@ -150,25 +157,25 @@ class MUISXFoldingProvider {
 			const line = document.lineAt(i);
 			const text = line.text;
 
-			// Match sx props
-			if (text.match(/\bsx\s*=\s*{/)) {
+			// Match sx props more precisely
+			const sxMatch = text.match(/\bsx\s*=\s*{/);
+			if (sxMatch) {
 				let openBraces = 0;
 				let startLine = i;
 				let endLine = i;
-				let foundFirstBrace = false;
+				let startColumn = sxMatch.index + sxMatch[0].length - 1; // Position of the opening brace
 
-				// Find the line with the opening brace
+				// Find the matching closing brace for this specific sx prop
 				for (let j = i; j < document.lineCount; j++) {
 					const currentLine = document.lineAt(j).text;
 					
-					for (let k = 0; k < currentLine.length; k++) {
+					// For the first line, start from where we found the sx prop
+					const startPos = j === i ? startColumn : 0;
+					
+					for (let k = startPos; k < currentLine.length; k++) {
 						const char = currentLine[k];
 						if (char === '{') {
 							openBraces++;
-							if (!foundFirstBrace) {
-								startLine = j;
-								foundFirstBrace = true;
-							}
 						}
 						if (char === '}') {
 							openBraces--;
