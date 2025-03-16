@@ -1,0 +1,55 @@
+{
+  "name": "mui-sx-fold",
+  "displayName": "MUI SX Fold",
+  "description": "Fold MUI sx props for better code readability",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Formatters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mui-sx-fold.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "mui-sx-fold.toggleFold",
+        "title": "Toggle MUI SX Fold"
+      }
+    ],
+    "configuration": {
+      "title": "MUI SX Fold",
+      "properties": {
+        "mui-sx-fold.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable automatic folding of MUI sx props"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.98.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "eslint": "^9.21.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
